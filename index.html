@@ -1,43 +1,67 @@
 <!doctype html>
 <html lang="vi">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HMT Logistics Manager - Đặt lại mật khẩu</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#eef5fb;color:#193b67;min-height:100vh;display:flex;align-items:center;justify-content:center}.card{width:min(460px,calc(100% - 32px));background:#fff;border:1px solid #d9e4ef;border-radius:20px;box-shadow:0 15px 45px #1d4f7a20;padding:34px;box-sizing:border-box}.logo{display:block;width:155px;margin:0 auto 16px}.title{text-align:center;font-size:28px;font-weight:800;margin:4px 0 8px}.sub{text-align:center;color:#6d7f95;line-height:1.5;margin-bottom:24px}.field{margin:14px 0}.field label{display:block;font-weight:700;margin-bottom:7px}.field input{box-sizing:border-box;width:100%;padding:13px 14px;border:1px solid #c9d9e8;border-radius:10px;font-size:15px;outline:none}.field input:focus{border-color:#2f78cf;box-shadow:0 0 0 3px #2f78cf18}.btn{width:100%;border:0;border-radius:10px;background:#2f78cf;color:#fff;font-weight:800;padding:14px;font-size:15px;cursor:pointer;margin-top:10px}.btn:disabled{opacity:.55;cursor:not-allowed}.msg{display:none;margin:12px 0;padding:11px 12px;border-radius:9px;line-height:1.45}.msg.ok{display:block;background:#eaf7ef;color:#17663d}.msg.err{display:block;background:#fff0f0;color:#a52626}.success{display:none;text-align:center}.success h2{margin:0 0 8px}.small{text-align:center;color:#77889b;font-size:13px;margin-top:18px}
+body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#eef5fb;color:#193b67;min-height:100vh;display:flex;align-items:center;justify-content:center}.card{width:min(460px,calc(100% - 32px));background:#fff;border:1px solid #d9e4ef;border-radius:20px;box-shadow:0 15px 45px #1d4f7a20;padding:34px;box-sizing:border-box}.logo{display:block;width:155px;margin:0 auto 16px}.title{text-align:center;font-size:28px;font-weight:800;margin:4px 0 8px}.sub{text-align:center;color:#6d7f95;line-height:1.5;margin-bottom:24px}.field{margin:14px 0}.field label{display:block;font-weight:700;margin-bottom:7px}.field input{box-sizing:border-box;width:100%;padding:13px 14px;border:1px solid #c9d9e8;border-radius:10px;font-size:15px;outline:none}.field input:focus{border-color:#2f78cf;box-shadow:0 0 0 3px #2f78cf18}.btn{width:100%;border:0;border-radius:10px;background:#2f78cf;color:#fff;font-weight:800;padding:14px;font-size:15px;cursor:pointer;margin-top:10px}.btn:disabled{opacity:.55;cursor:not-allowed}.msg{display:none;margin:12px 0;padding:11px 12px;border-radius:9px;line-height:1.45}.msg.ok{display:block;background:#eaf7ef;color:#17663d}.msg.err{display:block;background:#fff0f0;color:#a52626}.success{text-align:center}.small{text-align:center;color:#77889b;font-size:13px;margin-top:18px}
 </style>
 </head>
 <body>
 <div class="card">
 <img class="logo" src="hmt-logo.png" alt="HMT Logistics">
-<div id="formView">
 <div class="title">Đặt lại mật khẩu</div>
 <div class="sub">Tạo mật khẩu mới cho tài khoản HMT Logistics Manager.</div>
 <div id="msg" class="msg"></div>
+<div id="formView">
 <div class="field"><label>Mật khẩu mới</label><input id="pw" type="password" autocomplete="new-password" placeholder="Tối thiểu 8 ký tự"></div>
 <div class="field"><label>Xác nhận mật khẩu</label><input id="cpw" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu"></div>
-<button class="btn" id="save">Đổi mật khẩu</button>
+<button class="btn" id="save" disabled>Đang xác thực liên kết...</button>
 <div class="small">HMT Logistics Manager · HMT Cloud</div>
 </div>
-<div id="success" class="success"><h2>✓ Đổi mật khẩu thành công</h2><p>Mật khẩu của anh đã được cập nhật. Anh có thể đóng trang này và đăng nhập lại HMT Logistics Manager.</p></div>
+<div id="success" class="success" style="display:none"><h2>✓ Đổi mật khẩu thành công</h2><p>Mật khẩu của anh đã được cập nhật. Anh có thể đóng trang này và đăng nhập lại HMT Logistics Manager.</p></div>
 </div>
 <script>
-(function(){
-const msg=document.getElementById('msg'),btn=document.getElementById('save');
-function show(t,ok){msg.textContent=t;msg.className='msg '+(ok?'ok':'err')}
+(async function(){
 const SUPABASE_URL='https://icerzuvcqkkpgwhmpyzx.supabase.co';
 const SUPABASE_KEY='sb_publishable_p-ZNc38khkCZyMp7CgS8wQ_sqRjmwwB';
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
-async function init(){try{
-const params=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.replace(/^#/,''));
-const code=params.get('code'),access=hash.get('access_token'),refresh=hash.get('refresh_token');
-if(code){const {error}=await sb.auth.exchangeCodeForSession(code);if(error)throw error;return true}
-if(access){const {error}=await sb.auth.setSession({access_token:access,refresh_token:refresh||''});if(error)throw error;return true}
-show('Hãy mở liên kết đặt lại mật khẩu từ email HMT. Nếu anh mở trực tiếp trang này thì chưa có mã xác thực.',false);btn.disabled=true;return false;
-}catch(e){show('Không thể xác thực liên kết: '+(e.message||e),false);btn.disabled=true;return false}}
-init();
-btn.onclick=async()=>{const p=document.getElementById('pw').value,c=document.getElementById('cpw').value;if(p.length<8)return show('Mật khẩu mới phải có ít nhất 8 ký tự.',false);if(p!==c)return show('Xác nhận mật khẩu không khớp.',false);btn.disabled=true;show('Đang cập nhật mật khẩu...',true);try{const {error}=await sb.auth.updateUser({password:p});if(error)throw error;document.getElementById('formView').style.display='none';document.getElementById('success').style.display='block';await sb.auth.signOut()}catch(e){show('Không thể đổi mật khẩu: '+(e.message||e),false);btn.disabled=false}};
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:true,flowType:'implicit'}});
+const msg=document.getElementById('msg'),btn=document.getElementById('save');
+function show(t,ok=false){msg.textContent=t;msg.className='msg '+(ok?'ok':'err');}
+let ready=false;
+try{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){ready=true;show('Liên kết hợp lệ. Anh có thể đặt mật khẩu mới.',true);btn.disabled=false;btn.textContent='Đổi mật khẩu';}
+  else{
+    const hash=new URLSearchParams(location.hash.replace(/^#/,' '));
+    const q=new URLSearchParams(location.search);
+    const hasRecovery=hash.has('access_token')||q.has('code')||q.has('token_hash');
+    if(hasRecovery){
+      await new Promise(r=>setTimeout(r,500));
+      const again=await sb.auth.getSession();
+      if(again.data.session){ready=true;show('Liên kết hợp lệ. Anh có thể đặt mật khẩu mới.',true);btn.disabled=false;btn.textContent='Đổi mật khẩu';}
+      else show('Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Hãy yêu cầu gửi lại email.');
+    }else show('Hãy mở liên kết đặt lại mật khẩu từ email HMT. Không thể đổi mật khẩu khi mở trực tiếp trang này.');
+  }
+}catch(e){show('Không thể xác thực liên kết: '+(e.message||e));}
+btn.onclick=async()=>{
+ if(!ready)return;
+ const p=document.getElementById('pw').value,c=document.getElementById('cpw').value;
+ if(p.length<8){show('Mật khẩu mới phải có ít nhất 8 ký tự.');return}
+ if(p!==c){show('Xác nhận mật khẩu không khớp.');return}
+ btn.disabled=true;btn.textContent='Đang cập nhật...';show('Đang cập nhật mật khẩu...',true);
+ try{
+   const {error}=await sb.auth.updateUser({password:p});
+   if(error)throw error;
+   document.getElementById('formView').style.display='none';
+   show('Đổi mật khẩu thành công.',true);
+   document.getElementById('success').style.display='block';
+   await sb.auth.signOut();
+ }catch(e){show('Không thể đổi mật khẩu: '+(e.message||e));btn.disabled=false;btn.textContent='Đổi mật khẩu';}
+};
 })();
 </script>
-</body></html>
+</body>
+</html>
