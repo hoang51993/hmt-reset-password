@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HMT Logistics Manager - Đặt lại mật khẩu</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#eef5fb;color:#193b67;min-height:100vh;display:flex;align-items:center;justify-content:center}.card{width:min(460px,calc(100% - 32px));background:#fff;border:1px solid #d9e4ef;border-radius:20px;box-shadow:0 15px 45px #1d4f7a20;padding:34px;box-sizing:border-box}.logo{display:block;width:155px;margin:0 auto 16px}.title{text-align:center;font-size:28px;font-weight:800;margin:4px 0 8px}.sub{text-align:center;color:#6d7f95;line-height:1.5;margin-bottom:24px}.field{margin:14px 0}.field label{display:block;font-weight:700;margin-bottom:7px}.field input{box-sizing:border-box;width:100%;padding:13px 14px;border:1px solid #c9d9e8;border-radius:10px;font-size:15px;outline:none}.field input:focus{border-color:#2f78cf;box-shadow:0 0 0 3px #2f78cf18}.btn{width:100%;border:0;border-radius:10px;background:#2f78cf;color:#fff;font-weight:800;padding:14px;font-size:15px;cursor:pointer;margin-top:10px}.btn:disabled{opacity:.55;cursor:not-allowed}.msg{display:none;margin:12px 0;padding:11px 12px;border-radius:9px;line-height:1.45}.msg.ok{display:block;background:#eaf7ef;color:#17663d}.msg.err{display:block;background:#fff0f0;color:#a52626}.success{display:none;text-align:center}.success h2{margin:0 0 8px}.small{text-align:center;color:#77889b;font-size:13px;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="card">
+<img class="logo" src="hmt-logo.png" alt="HMT Logistics">
+<div id="formView">
+<div class="title">Đặt lại mật khẩu</div>
+<div class="sub">Tạo mật khẩu mới cho tài khoản HMT Logistics Manager.</div>
+<div id="msg" class="msg"></div>
+<div class="field"><label>Mật khẩu mới</label><input id="pw" type="password" autocomplete="new-password" placeholder="Tối thiểu 8 ký tự"></div>
+<div class="field"><label>Xác nhận mật khẩu</label><input id="cpw" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu"></div>
+<button class="btn" id="save">Đổi mật khẩu</button>
+<div class="small">HMT Logistics Manager · HMT Cloud</div>
+</div>
+<div id="success" class="success"><h2>✓ Đổi mật khẩu thành công</h2><p>Mật khẩu của anh đã được cập nhật. Anh có thể đóng trang này và đăng nhập lại HMT Logistics Manager.</p></div>
+</div>
+<script>
+(function(){
+  const msg=document.getElementById('msg'),btn=document.getElementById('save');
+  function show(t,ok){msg.textContent=t;msg.className='msg '+(ok?'ok':'err')}
+  const params=new URLSearchParams(location.search), hash=new URLSearchParams(location.hash.replace(/^#/,'') );
+  const project=(params.get('project')||location.origin).replace(/\/$/,'');
+  const key=params.get('key')||'';
+  // The publishable/anon key is intentionally a client-side key. The actual data/security policy remains in Supabase RLS.
+  if(!key){show('Liên kết đặt lại mật khẩu thiếu thông tin kết nối HMT Cloud. Hãy yêu cầu gửi lại email từ ứng dụng HMT.',false);btn.disabled=true;return}
+  const sb=window.supabase.createClient(project,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+  async function init(){
+    try{
+      const access=hash.get('access_token'),refresh=hash.get('refresh_token');
+      if(access&&refresh){let {error}=await sb.auth.setSession({access_token:access,refresh_token:refresh});if(error)throw error;return true}
+      const type=hash.get('type');
+      if(type==='recovery')return true;
+      show('Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Hãy yêu cầu gửi lại email.',false);btn.disabled=true;return false;
+    }catch(e){show('Không thể xác thực liên kết: '+(e.message||e),false);btn.disabled=true;return false}
+  }
+  init();
+  btn.onclick=async()=>{
+    const p=document.getElementById('pw').value,c=document.getElementById('cpw').value;
+    if(p.length<8)return show('Mật khẩu mới phải có ít nhất 8 ký tự.',false);
+    if(p!==c)return show('Xác nhận mật khẩu không khớp.',false);
+    btn.disabled=true;show('Đang cập nhật mật khẩu...',true);
+    try{let {error}=await sb.auth.updateUser({password:p});if(error)throw error;document.getElementById('formView').style.display='none';document.getElementById('success').style.display='block';await sb.auth.signOut();}
+    catch(e){show('Không thể đổi mật khẩu: '+(e.message||e),false);btn.disabled=false}
+  };
+})();
+</script>
+</body></html>
