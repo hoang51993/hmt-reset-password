@@ -24,32 +24,20 @@ body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#eef5fb;color:#19
 </div>
 <script>
 (function(){
-  const msg=document.getElementById('msg'),btn=document.getElementById('save');
-  function show(t,ok){msg.textContent=t;msg.className='msg '+(ok?'ok':'err')}
-  const params=new URLSearchParams(location.search), hash=new URLSearchParams(location.hash.replace(/^#/,'') );
-  const project=(params.get('project')||location.origin).replace(/\/$/,'');
-  const key=params.get('key')||'';
-  // The publishable/anon key is intentionally a client-side key. The actual data/security policy remains in Supabase RLS.
-  if(!key){show('Liên kết đặt lại mật khẩu thiếu thông tin kết nối HMT Cloud. Hãy yêu cầu gửi lại email từ ứng dụng HMT.',false);btn.disabled=true;return}
-  const sb=window.supabase.createClient(project,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
-  async function init(){
-    try{
-      const access=hash.get('access_token'),refresh=hash.get('refresh_token');
-      if(access&&refresh){let {error}=await sb.auth.setSession({access_token:access,refresh_token:refresh});if(error)throw error;return true}
-      const type=hash.get('type');
-      if(type==='recovery')return true;
-      show('Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Hãy yêu cầu gửi lại email.',false);btn.disabled=true;return false;
-    }catch(e){show('Không thể xác thực liên kết: '+(e.message||e),false);btn.disabled=true;return false}
-  }
-  init();
-  btn.onclick=async()=>{
-    const p=document.getElementById('pw').value,c=document.getElementById('cpw').value;
-    if(p.length<8)return show('Mật khẩu mới phải có ít nhất 8 ký tự.',false);
-    if(p!==c)return show('Xác nhận mật khẩu không khớp.',false);
-    btn.disabled=true;show('Đang cập nhật mật khẩu...',true);
-    try{let {error}=await sb.auth.updateUser({password:p});if(error)throw error;document.getElementById('formView').style.display='none';document.getElementById('success').style.display='block';await sb.auth.signOut();}
-    catch(e){show('Không thể đổi mật khẩu: '+(e.message||e),false);btn.disabled=false}
-  };
+const msg=document.getElementById('msg'),btn=document.getElementById('save');
+function show(t,ok){msg.textContent=t;msg.className='msg '+(ok?'ok':'err')}
+const SUPABASE_URL='https://icerzuvcqkkpgwhmpyzx.supabase.co';
+const SUPABASE_KEY='sb_publishable_p-ZNc38khkCZyMp7CgS8wQ_sqRjmwwB';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+async function init(){try{
+const params=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.replace(/^#/,''));
+const code=params.get('code'),access=hash.get('access_token'),refresh=hash.get('refresh_token');
+if(code){const {error}=await sb.auth.exchangeCodeForSession(code);if(error)throw error;return true}
+if(access){const {error}=await sb.auth.setSession({access_token:access,refresh_token:refresh||''});if(error)throw error;return true}
+show('Hãy mở liên kết đặt lại mật khẩu từ email HMT. Nếu anh mở trực tiếp trang này thì chưa có mã xác thực.',false);btn.disabled=true;return false;
+}catch(e){show('Không thể xác thực liên kết: '+(e.message||e),false);btn.disabled=true;return false}}
+init();
+btn.onclick=async()=>{const p=document.getElementById('pw').value,c=document.getElementById('cpw').value;if(p.length<8)return show('Mật khẩu mới phải có ít nhất 8 ký tự.',false);if(p!==c)return show('Xác nhận mật khẩu không khớp.',false);btn.disabled=true;show('Đang cập nhật mật khẩu...',true);try{const {error}=await sb.auth.updateUser({password:p});if(error)throw error;document.getElementById('formView').style.display='none';document.getElementById('success').style.display='block';await sb.auth.signOut()}catch(e){show('Không thể đổi mật khẩu: '+(e.message||e),false);btn.disabled=false}};
 })();
 </script>
 </body></html>
